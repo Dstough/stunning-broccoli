@@ -10,7 +10,7 @@ namespace Assets.Scripts.Networking.ServerData
     {
         public static int MaxPlayers { get; set; }
         public static int Port { get; set; }
-        public static Dictionary<int, Client> Slots { get; set; }
+        public static Dictionary<int, ClientObject> Slots { get; set; }
 
         private static TcpListener TcpListener { get; set; }
 
@@ -49,7 +49,7 @@ namespace Assets.Scripts.Networking.ServerData
         private static void InitalizeServerData()
         {
             for (var i = 1; i <= MaxPlayers; i++)
-                Slots.Add(i, new Client(i));            
+                Slots.Add(i, new ClientObject(i));            
             
             TcpListener = new TcpListener(IPAddress.Any, Port);
             TcpListener.Start();

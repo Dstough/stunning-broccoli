@@ -4,19 +4,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Networking.ServerData
 {
-    public class Client
-    {
-        public int Id { get; set; }
-        public TCP Tcp { get; set; }
-
-        public Client(int id)
-        {
-            Id = id;
-            Tcp = new TCP(id);
-        }
-    }
-
-    public class TCP
+    public class ClientTCP
     {
         public static int DataBufferSize { get; } = 4096;
         public TcpClient Socket { get; set; }
@@ -25,7 +13,7 @@ namespace Assets.Scripts.Networking.ServerData
         private NetworkStream Stream { get; set; }
         private byte[] ReceiveBuffer { get; set; }
 
-        public TCP(int id)
+        public ClientTCP(int id)
         {
             Id = id;
         }
@@ -40,7 +28,7 @@ namespace Assets.Scripts.Networking.ServerData
             ReceiveBuffer = new byte[DataBufferSize];
 
             Stream.BeginRead(ReceiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
-            
+
             //TODO: Send welcome packet;
         }
 
@@ -54,14 +42,14 @@ namespace Assets.Scripts.Networking.ServerData
                     throw new Exception("No byte data was read in the packet;");
 
                 var data = new byte[length];
-                
+
                 Array.Copy(ReceiveBuffer, data, length);
 
                 //TODO: Handle the data
 
                 Stream.BeginRead(ReceiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.Log($"Error receiving TCP data: {ex}");
                 //TODO: Disconnect;
