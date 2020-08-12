@@ -16,6 +16,8 @@ namespace Assets.Scripts.Networking.ServerData
 
         void Start()
         {
+            DontDestroyOnLoad(transform.gameObject);
+
             MaxPlayers = 6;
             Port = 451;
 
@@ -48,6 +50,8 @@ namespace Assets.Scripts.Networking.ServerData
 
         private static void InitalizeServerData()
         {
+            Slots = new Dictionary<int, ClientObject>();
+
             for (var i = 1; i <= MaxPlayers; i++)
                 Slots.Add(i, new ClientObject(i));            
             
