@@ -2,33 +2,36 @@
 using System.Net.Sockets;
 using UnityEngine;
 
-namespace Assets.Scripts.Networking.ServerData
+namespace Assets.Scripts.Networking.ClientData
 {
     public class ClientTCP
     {
         public TcpClient Socket;
-        public int Id;
 
-        private NetworkStream Stream { get; set; }
-        private byte[] ReceiveBuffer { get; set; }
+        private NetworkStream Stream;
+        private byte[] ReceiveBuffer;
 
-        public ClientTCP(int id)
+        public void Connect()
         {
-            Id = id;
+            Socket = new TcpClient
+            {
+                ReceiveBufferSize = Config.DATA_BUFFER_SIZE,
+                SendBufferSize = Config.DATA_BUFFER_SIZE
+            };
+
+            ReceiveBuffer = new byte[Config.DATA_BUFFER_SIZE];
+            Socket.BeginConnect(Client.Instance.Ip, Config.PORT, ConnectCallback, Socket);
         }
 
-        public void Connect(TcpClient socket)
+        private void ConnectCallback(IAsyncResult result)
         {
-            Socket = socket;
-            Socket.ReceiveBufferSize = Config.DATA_BUFFER_SIZE;
-            Socket.SendBufferSize = Config.DATA_BUFFER_SIZE;
+            Socket.EndConnect(result);
+
+            if (!Socket.Connected)
+                return;
 
             Stream = Socket.GetStream();
-            ReceiveBuffer = new byte[Config.DATA_BUFFER_SIZE];
-
             Stream.BeginRead(ReceiveBuffer, 0, Config.DATA_BUFFER_SIZE, ReceiveCallback, null);
-
-            //TODO: Send welcome packet;
         }
 
         private void ReceiveCallback(IAsyncResult result)

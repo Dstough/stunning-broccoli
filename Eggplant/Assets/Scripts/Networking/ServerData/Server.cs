@@ -8,24 +8,44 @@ namespace Assets.Scripts.Networking.ServerData
 {
     public class Server : MonoBehaviour
     {
-        public static int MaxPlayers { get; set; }
-        public static int Port { get; set; }
+        public static Server Instance;
         public static Dictionary<int, ClientObject> Slots { get; set; }
 
         private static TcpListener TcpListener { get; set; }
 
+        #region Monobehaviour
+
+        private void Awake()
+        {
+            if (Instance == null)
+                Instance = this;
+            else
+                Destroy(this);
+
+            DontDestroyOnLoad(transform.gameObject);
+        }
+
         void Start()
         {
-            DontDestroyOnLoad(transform.gameObject);
-
-            MaxPlayers = 6;
-            Port = 451;
-
             Debug.Log($"Starting Server...");
 
             InitalizeServerData();
 
-            Debug.Log($"Server started on port {Port}.");
+            Debug.Log($"Server started on port {Config.PORT}.");
+        }
+
+        #endregion
+
+        private static void InitalizeServerData()
+        {
+            Slots = new Dictionary<int, ClientObject>();
+
+            for (var i = 1; i <= Config.MAX_PLAYERS; i++)
+                Slots.Add(i, new ClientObject(i));            
+            
+            TcpListener = new TcpListener(IPAddress.Any, Config.PORT);
+            TcpListener.Start();
+            TcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
         }
 
         private static void TcpConnectCallback(IAsyncResult result)
@@ -46,18 +66,6 @@ namespace Assets.Scripts.Networking.ServerData
             }
 
             Debug.Log($"{client.Client.RemoteEndPoint} failed to connect: Server full.");
-        }
-
-        private static void InitalizeServerData()
-        {
-            Slots = new Dictionary<int, ClientObject>();
-
-            for (var i = 1; i <= MaxPlayers; i++)
-                Slots.Add(i, new ClientObject(i));            
-            
-            TcpListener = new TcpListener(IPAddress.Any, Port);
-            TcpListener.Start();
-            TcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
         }
     }
 }
