@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using UnityEngine;
 
@@ -11,6 +12,9 @@ namespace Assets.Scripts.Networking.ClientData
         public string Ip = "127.0.0.1";
         public int Id;
         public ClientTCP Tcp;
+
+        public delegate void PacketHandler(Packet packet);
+        public static Dictionary<int, PacketHandler> PacketHandlers;
 
         #region Monobehaviour
 
@@ -31,6 +35,12 @@ namespace Assets.Scripts.Networking.ClientData
             InitializeClient();
 
             Debug.Log($"Client Started.");
+
+            Debug.Log($"Connecting to server...");
+
+            Tcp.Connect();
+
+            Debug.Log($"Connected to Server.");
         }
 
         #endregion
@@ -38,6 +48,11 @@ namespace Assets.Scripts.Networking.ClientData
         private void InitializeClient()
         {
             Tcp = new ClientTCP();
+
+            PacketHandlers = new Dictionary<int, PacketHandler>
+            {
+                {(int)PacketTypes.Welcome, ClientHandle.Welcome }
+            };
         }
     }
 }

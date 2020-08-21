@@ -10,6 +10,8 @@ namespace Assets.Scripts.Networking.ServerData
     {
         public static Server Instance;
         public static Dictionary<int, ClientObject> Slots { get; set; }
+        public delegate void PacketHandler(int Id, Packet packet);
+        public static Dictionary<int, PacketHandler> PacketHandlers;
 
         private static TcpListener TcpListener { get; set; }
 
@@ -41,7 +43,12 @@ namespace Assets.Scripts.Networking.ServerData
             Slots = new Dictionary<int, ClientObject>();
 
             for (var i = 1; i <= Config.MAX_PLAYERS; i++)
-                Slots.Add(i, new ClientObject(i));            
+                Slots.Add(i, new ClientObject(i));
+
+            PacketHandlers = new Dictionary<int, PacketHandler> 
+            {
+                { (int)PacketTypes.WelcomeReceived, ServerHandle.WelcomeRecieved }
+            };
             
             TcpListener = new TcpListener(IPAddress.Any, Config.PORT);
             TcpListener.Start();
@@ -61,6 +68,9 @@ namespace Assets.Scripts.Networking.ServerData
                 if (slot.Value.Tcp.Socket == null)
                 {
                     slot.Value.Tcp.Connect(client);
+
+                    Debug.Log($"Client {client.Client.RemoteEndPoint} connected.");
+
                     return;
                 }
             }

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &7309145907756447933
+--- !u!1 &7707656890493726736
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,49 +8,51 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3477341661765361361}
-  - component: {fileID: 8637783209405663121}
-  - component: {fileID: -5362491606643735031}
+  - component: {fileID: 1580611730672187379}
+  - component: {fileID: 5542263117447234445}
+  - component: {fileID: -2433301384477709759}
   m_Layer: 0
-  m_Name: Server
+  m_Name: Client
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3477341661765361361
+--- !u!4 &1580611730672187379
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7309145907756447933}
+  m_GameObject: {fileID: 7707656890493726736}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.043223, y: -0.47130126, z: 246.375}
+  m_LocalPosition: {x: -0.9169923, y: 1.0137275, z: 234.94238}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8637783209405663121
+--- !u!114 &5542263117447234445
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7309145907756447933}
+  m_GameObject: {fileID: 7707656890493726736}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9c28438bf9454f4287c6be643234b3a, type: 3}
+  m_Script: {fileID: 11500000, guid: 684f0411f062a7946ae52336f7b75986, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-5362491606643735031
+  Ip: 127.0.0.1
+  Id: 0
+--- !u!114 &-2433301384477709759
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7309145907756447933}
+  m_GameObject: {fileID: 7707656890493726736}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 789a47306dcd7b344a829935f99b9bca, type: 3}
