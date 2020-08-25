@@ -10,20 +10,12 @@ namespace Assets.Scripts.Networking.ServerData
     {
         #region Core
 
-        public static void SendTcpData(int toClient, object data)
-        {
-
-        }
         public static void SendTcpData(int toClient, Packet packet)
         {
             packet.WriteLength();
             Server.Slots[toClient].Tcp.SendData(packet);
         }
 
-        public static void SendTcpDataToAll(object data)
-        {
-
-        }
         public static void SendTcpDataToAll(Packet packet)
         {
             packet.WriteLength();
@@ -32,10 +24,6 @@ namespace Assets.Scripts.Networking.ServerData
                 slot.Value.Tcp.SendData(packet);
         }
 
-        public static void SendTcpDataToAll(int exceptClient, object data)
-        {
-
-        }
         public static void SendTcpDataToAll(int exceptClient, Packet packet)
         {
             foreach (var slot in Server.Slots.Where(slot => slot.Key != exceptClient))
