@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.Scripts.Networking.ServerData
 {
@@ -19,6 +17,13 @@ namespace Assets.Scripts.Networking.ServerData
             }
 
             //TODO: Send player into game.
+        }
+
+        public static void UdpTest(int fromClient, Packet packet)
+        {
+            var message = packet.ReadString();
+
+            Debug.Log($"{fromClient}: {message}");
         }
     }
 }

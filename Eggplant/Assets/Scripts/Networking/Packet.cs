@@ -9,10 +9,7 @@ namespace Assets.Scripts.Networking
     {
         Welcome,
         WelcomeReceived,
-        SpawnPlayer,
-        PlayerPosition,
-        PlayerRotation,
-        PlayerMovement
+        UdpTest
     }
 
     public class Packet : IDisposable

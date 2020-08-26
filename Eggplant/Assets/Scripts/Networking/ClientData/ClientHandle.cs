@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 using UnityEngine;
 
 namespace Assets.Scripts.Networking.ClientData
@@ -19,6 +15,17 @@ namespace Assets.Scripts.Networking.ClientData
             Debug.Log($"{message}");
 
             ClientSend.WelcomeRecieved();
+
+            Client.Instance.Udp.Connect(((IPEndPoint)Client.Instance.Tcp.Socket.Client.LocalEndPoint).Port);
+        }
+
+        public static void UdpTest(Packet packet)
+        {
+            var message = packet.ReadString();
+
+            Debug.Log($"{message}");
+
+            ClientSend.UpdTest();
         }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace Assets.Scripts.Networking.ServerData
 {
@@ -15,6 +11,11 @@ namespace Assets.Scripts.Networking.ServerData
             packet.WriteLength();
             Server.Slots[toClient].Tcp.SendData(packet);
         }
+        public static void SendUdpData(int toClient, Packet packet)
+        {
+            packet.WriteLength();
+            Server.Slots[toClient].Udp.SendData(packet);
+        }
 
         public static void SendTcpDataToAll(Packet packet)
         {
@@ -23,16 +24,32 @@ namespace Assets.Scripts.Networking.ServerData
             foreach (var slot in Server.Slots)
                 slot.Value.Tcp.SendData(packet);
         }
+        public static void SendUdpDataToAll(Packet packet)
+        {
+            packet.WriteLength();
+
+            foreach (var slot in Server.Slots)
+                slot.Value.Udp.SendData(packet);
+        }
 
         public static void SendTcpDataToAll(int exceptClient, Packet packet)
         {
+            packet.WriteLength();
+
             foreach (var slot in Server.Slots.Where(slot => slot.Key != exceptClient))
                 slot.Value.Tcp.SendData(packet);
+        }
+        public static void SendUdpDataToAll(int exceptClient, Packet packet)
+        {
+            packet.WriteLength();
+
+            foreach (var slot in Server.Slots.Where(slot => slot.Key != exceptClient))
+                slot.Value.Udp.SendData(packet);
         }
 
         #endregion
 
-        #region messages
+        #region packets
 
         public static void Welcome(int toClient, string message)
         {
@@ -42,6 +59,16 @@ namespace Assets.Scripts.Networking.ServerData
                 packet.Write(toClient);
 
                 SendTcpData(toClient, packet);
+            }
+        }
+
+        public static void UdpTest(int toClient)
+        {
+            using(var packet = new Packet((int)PacketTypes.UdpTest))
+            {
+                packet.Write("A simple test.");
+
+                SendUdpData(toClient, packet);
             }
         }
 

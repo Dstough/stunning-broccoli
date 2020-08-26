@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Networking.ClientData
@@ -12,6 +10,7 @@ namespace Assets.Scripts.Networking.ClientData
         public string Ip = "127.0.0.1";
         public int Id;
         public ClientTCP Tcp;
+        public ClientUDP Udp;
 
         public delegate void PacketHandler(Packet packet);
         public static Dictionary<int, PacketHandler> PacketHandlers;
@@ -38,7 +37,7 @@ namespace Assets.Scripts.Networking.ClientData
 
             Debug.Log($"Connecting to server...");
 
-            Tcp.Connect();
+            Instance.Tcp.Connect();
 
             Debug.Log($"Connected to Server.");
         }
@@ -48,10 +47,12 @@ namespace Assets.Scripts.Networking.ClientData
         private void InitializeClient()
         {
             Tcp = new ClientTCP();
+            Udp = new ClientUDP();
 
             PacketHandlers = new Dictionary<int, PacketHandler>
             {
-                {(int)PacketTypes.Welcome, ClientHandle.Welcome }
+                {(int)PacketTypes.Welcome, ClientHandle.Welcome },
+                {(int)PacketTypes.UdpTest, ClientHandle.UdpTest }
             };
         }
     }

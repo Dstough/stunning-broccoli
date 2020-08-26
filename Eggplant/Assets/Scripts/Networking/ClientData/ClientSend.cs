@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Assets.Scripts.Networking.ClientData
 {
@@ -6,19 +7,20 @@ namespace Assets.Scripts.Networking.ClientData
     {
         #region Core
 
-        public static void SendTcpData(object data)
-        {
-
-        }
         public static void SendTcpData(Packet packet)
         {
             packet.WriteLength();
             Client.Instance.Tcp.SendData(packet);
         }
+        public static void SendUdpData(Packet packet)
+        {
+            packet.WriteLength();
+            Client.Instance.Udp.SendData(packet);
+        }
 
         #endregion
 
-        #region messages
+        #region Packets
 
         public static void WelcomeRecieved()
         {
@@ -28,6 +30,16 @@ namespace Assets.Scripts.Networking.ClientData
                 packet.Write("Some User Name");
 
                 SendTcpData(packet);
+            }
+        }
+
+        public static void UpdTest()
+        {
+            using (var packet = new Packet((int)PacketTypes.UdpTest))
+            {
+                packet.Write("I got your test.");
+
+                SendUdpData(packet);
             }
         }
 

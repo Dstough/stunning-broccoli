@@ -10,10 +10,16 @@ namespace Assets.Scripts.Networking.ServerData
     {
         public static Server Instance;
         public static Dictionary<int, ClientObject> Slots { get; set; }
-        public delegate void PacketHandler(int Id, Packet packet);
-        public static Dictionary<int, PacketHandler> PacketHandlers;
-
+        
         private static TcpListener TcpListener { get; set; }
+        private static UdpClient UdpListener { get; set; }
+
+        public delegate void PacketHandler(int Id, Packet packet);
+        public static Dictionary<int, PacketHandler> PacketHandlers = new Dictionary<int, PacketHandler>
+        {
+            { (int)PacketTypes.WelcomeReceived, ServerHandle.WelcomeRecieved },
+            { (int)PacketTypes.UdpTest, ServerHandle.UdpTest }
+        };
 
         #region Monobehaviour
 
@@ -45,16 +51,51 @@ namespace Assets.Scripts.Networking.ServerData
             for (var i = 1; i <= Config.MAX_PLAYERS; i++)
                 Slots.Add(i, new ClientObject(i));
 
-            PacketHandlers = new Dictionary<int, PacketHandler> 
-            {
-                { (int)PacketTypes.WelcomeReceived, ServerHandle.WelcomeRecieved }
-            };
-            
             TcpListener = new TcpListener(IPAddress.Any, Config.PORT);
             TcpListener.Start();
             TcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
+
+            UdpListener = new UdpClient(Config.PORT);
+            UdpListener.BeginReceive(UdpReceiveCallback, null);
         }
 
+        private static void UdpReceiveCallback(IAsyncResult result)
+        {
+            try
+            {
+                var clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                var data = UdpListener.EndReceive(result, ref clientEndPoint);
+
+                UdpListener.BeginReceive(UdpReceiveCallback, null);
+
+                if (data.Length < 4)
+                {
+                    //TODO: Disconnect client
+                    return;
+                }
+
+                using (var packet = new Packet(data))
+                {
+                    var clientId = packet.ReadInt();
+
+                    if (clientId == 0)
+                        return;
+
+                    if (Slots[clientId].Udp.EndPoint == null)
+                    {
+                        Slots[clientId].Udp.Connect(clientEndPoint);
+                        return;
+                    }
+
+                    if (Slots[clientId].Udp.EndPoint.ToString() == clientEndPoint.ToString())
+                        Slots[clientId].Udp.HandleData(packet);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error receiving UDP data: {ex}");
+            }
+        }
         private static void TcpConnectCallback(IAsyncResult result)
         {
             var client = TcpListener.EndAcceptTcpClient(result);
@@ -63,7 +104,7 @@ namespace Assets.Scripts.Networking.ServerData
 
             Debug.Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
 
-            foreach (var slot in Slots) 
+            foreach (var slot in Slots)
             {
                 if (slot.Value.Tcp.Socket == null)
                 {
@@ -76,6 +117,21 @@ namespace Assets.Scripts.Networking.ServerData
             }
 
             Debug.Log($"{client.Client.RemoteEndPoint} failed to connect: Server full.");
+        }
+
+        public static void SendUdpData(IPEndPoint clientEndPoint, Packet packet)
+        {
+            try
+            {
+                if (clientEndPoint == null)
+                    return;
+
+                UdpListener.BeginSend(packet.ToArray(), packet.Length(), null, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error sending data to {clientEndPoint} via UDP: {ex}");
+            }
         }
     }
 }
