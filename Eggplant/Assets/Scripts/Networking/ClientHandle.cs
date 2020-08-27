@@ -1,10 +1,20 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
+using Assets.Scripts.Networking.Framework;
 using UnityEngine;
 
 namespace Assets.Scripts.Networking.ClientData
 {
     class ClientHandle : MonoBehaviour
     {
+        public static void InitializeClientPacketHandlers()
+        {
+            Client.PacketHandlers = new Dictionary<int, Client.PacketHandler>
+            {
+                {(int)PacketTypes.Welcome, Welcome }
+            };
+        }
+
         public static void Welcome(Packet packet)
         {
             var message = packet.ReadString();
@@ -17,15 +27,6 @@ namespace Assets.Scripts.Networking.ClientData
             ClientSend.WelcomeRecieved();
 
             Client.Instance.Udp.Connect(((IPEndPoint)Client.Instance.Tcp.Socket.Client.LocalEndPoint).Port);
-        }
-
-        public static void UdpTest(Packet packet)
-        {
-            var message = packet.ReadString();
-
-            Debug.Log($"{message}");
-
-            ClientSend.UpdTest();
         }
     }
 }

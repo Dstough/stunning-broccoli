@@ -3,15 +3,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
-namespace Assets.Scripts.Networking
+namespace Assets.Scripts.Networking.Framework
 {
-    public enum PacketTypes
-    {
-        Welcome,
-        WelcomeReceived,
-        UdpTest
-    }
-
     public class Packet : IDisposable
     {
         private List<byte> Buffer;

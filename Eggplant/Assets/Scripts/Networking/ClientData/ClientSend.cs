@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Assets.Scripts.Networking.Framework;
 using UnityEngine;
 
 namespace Assets.Scripts.Networking.ClientData
@@ -30,16 +30,6 @@ namespace Assets.Scripts.Networking.ClientData
                 packet.Write("Some User Name");
 
                 SendTcpData(packet);
-            }
-        }
-
-        public static void UpdTest()
-        {
-            using (var packet = new Packet((int)PacketTypes.UdpTest))
-            {
-                packet.Write("I got your test.");
-
-                SendUdpData(packet);
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Assets.Scripts.Networking.Framework;
 
 namespace Assets.Scripts.Networking.ServerData
 {
@@ -59,16 +60,6 @@ namespace Assets.Scripts.Networking.ServerData
                 packet.Write(toClient);
 
                 SendTcpData(toClient, packet);
-            }
-        }
-
-        public static void UdpTest(int toClient)
-        {
-            using(var packet = new Packet((int)PacketTypes.UdpTest))
-            {
-                packet.Write("A simple test.");
-
-                SendUdpData(toClient, packet);
             }
         }
 

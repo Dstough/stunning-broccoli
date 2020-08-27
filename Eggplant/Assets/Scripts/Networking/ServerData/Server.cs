@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using Assets.Scripts.Networking.Framework;
 
 namespace Assets.Scripts.Networking.ServerData
 {
@@ -15,11 +16,7 @@ namespace Assets.Scripts.Networking.ServerData
         private static UdpClient UdpListener { get; set; }
 
         public delegate void PacketHandler(int Id, Packet packet);
-        public static Dictionary<int, PacketHandler> PacketHandlers = new Dictionary<int, PacketHandler>
-        {
-            { (int)PacketTypes.WelcomeReceived, ServerHandle.WelcomeRecieved },
-            { (int)PacketTypes.UdpTest, ServerHandle.UdpTest }
-        };
+        public static Dictionary<int, PacketHandler> PacketHandlers;
 
         #region Monobehaviour
 
@@ -33,20 +30,27 @@ namespace Assets.Scripts.Networking.ServerData
             DontDestroyOnLoad(transform.gameObject);
         }
 
-        void Start()
+        private void Start()
         {
             Debug.Log($"Starting Server...");
 
-            InitalizeServerData();
+            InitalizeServer();
 
             Debug.Log($"Server started on port {Config.PORT}.");
         }
 
+        private void OnApplicationQuit()
+        {
+            ShutdownServer();
+        }
+
         #endregion
 
-        private static void InitalizeServerData()
+        private static void InitalizeServer()
         {
             Slots = new Dictionary<int, ClientObject>();
+
+            ServerHandle.InitializeServerPacketHandlers();
 
             for (var i = 1; i <= Config.MAX_PLAYERS; i++)
                 Slots.Add(i, new ClientObject(i));
@@ -59,6 +63,19 @@ namespace Assets.Scripts.Networking.ServerData
             UdpListener.BeginReceive(UdpReceiveCallback, null);
         }
 
+        private void ShutdownServer()
+        {
+            TcpListener.Stop();
+            UdpListener.Close();
+
+            foreach(var client in Slots)
+                if(client.Value != null)
+                    client.Value.Disconnect();
+            
+            TcpListener = null;
+            UdpListener = null;
+        }
+
         private static void UdpReceiveCallback(IAsyncResult result)
         {
             try
@@ -69,11 +86,8 @@ namespace Assets.Scripts.Networking.ServerData
                 UdpListener.BeginReceive(UdpReceiveCallback, null);
 
                 if (data.Length < 4)
-                {
-                    //TODO: Disconnect client
                     return;
-                }
-
+                
                 using (var packet = new Packet(data))
                 {
                     var clientId = packet.ReadInt();
@@ -90,6 +104,10 @@ namespace Assets.Scripts.Networking.ServerData
                     if (Slots[clientId].Udp.EndPoint.ToString() == clientEndPoint.ToString())
                         Slots[clientId].Udp.HandleData(packet);
                 }
+            }
+            catch (ObjectDisposedException)
+            {
+                // Ignored
             }
             catch (Exception ex)
             {
@@ -126,7 +144,7 @@ namespace Assets.Scripts.Networking.ServerData
                 if (clientEndPoint == null)
                     return;
 
-                UdpListener.BeginSend(packet.ToArray(), packet.Length(), null, null);
+                UdpListener.BeginSend(packet.ToArray(), packet.Length(), clientEndPoint, null, null);
             }
             catch (Exception ex)
             {
