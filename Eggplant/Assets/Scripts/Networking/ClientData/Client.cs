@@ -282,14 +282,14 @@ namespace Assets.Scripts.Networking.ClientData
 
         private void InitializeClient()
         {
-            Tcp = new ClientTCP();
-            Udp = new ClientUDP();
-
             ClientHandle.InitializeClientPacketHandlers();
         }
         
         public void ConnectToServer()
         {
+            Tcp = new ClientTCP();
+            Udp = new ClientUDP();
+            
             isConnected = true;
             Instance.Tcp.Connect();
         }
