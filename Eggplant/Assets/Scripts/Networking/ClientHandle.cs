@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using Assets.Scripts.Networking.ClientData;
 using Assets.Scripts.Networking.Framework;
 using UnityEngine;
 
-namespace Assets.Scripts.Networking.ClientData
+namespace Assets.Scripts.Networking
 {
     class ClientHandle : MonoBehaviour
     {
