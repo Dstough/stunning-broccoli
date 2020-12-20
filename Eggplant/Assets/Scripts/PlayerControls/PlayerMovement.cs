@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private const float gravity = -9.81f;
+    
     public Transform playerCamera;
     public Transform groundCheck;
     public LayerMask groundMask;
@@ -13,17 +15,13 @@ public class PlayerMovement : MonoBehaviour
     public float groundDistance = .1f;
     public float jumpHeight = 3f;
     public float strafeLeanAmmount = 0.2f;
-    public float walkingBobbingSpeed = 14f;
-    public float bobbingAmount = 0.5f;
+    public bool grounded = true;
 
-    private float timer = 0f;
     private float xRotation = 0f;
     private float strafeLeanRotation = 0f;
-    private float headBobRotation = 0f;
-    private bool grounded = true;
-    private const float gravity = -9.81f;
     private Vector3 velocity;
     private Vector3 MoveDirection;
+    private Vector3 JumpDirection;
 
     void Start()
     {
@@ -32,34 +30,18 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        Headbob();
         HeadLean();
         Look();
         Move();
-    }
-
-    private void Headbob()
-    {
-        var z = Input.GetAxis("Vertical");
-
-        if (z < -0.001 || z > 0.001 || headBobRotation < -0.05f || headBobRotation > 0.05f)
-        {
-            timer += Time.deltaTime;
-            headBobRotation += bobbingAmount * Mathf.Cos(timer * walkingBobbingSpeed) ;
-        }
-        else
-        {
-            timer = 0f;
-        }
     }
 
     private void HeadLean()
     {
         var x = Input.GetAxis("Horizontal");
 
-        if (Math.Abs(strafeLeanRotation) < strafeLeanAmmount && x < 0)
+        if (Math.Abs(strafeLeanRotation) < strafeLeanAmmount && x < 0 && grounded)
             strafeLeanRotation += Time.deltaTime * strafeLeanAmmount * 2;
-        if (Math.Abs(strafeLeanRotation) < strafeLeanAmmount && x > 0)
+        if (Math.Abs(strafeLeanRotation) < strafeLeanAmmount && x > 0 && grounded)
             strafeLeanRotation -= Time.deltaTime * strafeLeanAmmount * 2;
 
         if (strafeLeanRotation > 0 && x >= 0)
@@ -75,7 +57,7 @@ public class PlayerMovement : MonoBehaviour
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, strafeLeanRotation + headBobRotation);
+        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, strafeLeanRotation);
         transform.Rotate(Vector3.up * mouseX);
     }
 
@@ -90,7 +72,14 @@ public class PlayerMovement : MonoBehaviour
         var z = Input.GetAxis("Vertical");
 
         MoveDirection = Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1) * movementSpeed * Time.deltaTime;
-        controller.Move(new Vector3(MoveDirection.x, 0, MoveDirection.z));
+
+        if (grounded)
+        {
+            controller.Move(new Vector3(MoveDirection.x, 0, MoveDirection.z));
+            JumpDirection = MoveDirection;
+        }
+        else
+            controller.Move(new Vector3(JumpDirection.x, 0, JumpDirection.z));
 
         if (Input.GetButtonDown("Jump") && grounded)
             velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);

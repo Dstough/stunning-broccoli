@@ -7,6 +7,8 @@ public class RTSCameraMovement : MonoBehaviour
     public Text DebugLabel;
     public bool ScrollEnabled = true;
     public float ScrollSpeed = 1;
+    public int zBound = 0;
+    public int xBound = 0;
 
     private const float SpeedScalar = .1f;
     private const int EdgeDistanceBuffer = 2;
@@ -22,10 +24,15 @@ public class RTSCameraMovement : MonoBehaviour
 
         PrintMousePosition();
         MouseScroll(ref newCameraPosition);
+        
         //TODO: Account for keyboard input to scroll screen
         //TODO: Check position against world bounds.
 
-        MainCamera.transform.position = newCameraPosition;
+        if (
+           (newCameraPosition.z <= zBound && newCameraPosition.z >= -zBound) &&
+           (newCameraPosition.x <= xBound && newCameraPosition.x >= -xBound) 
+        )
+            MainCamera.transform.position = newCameraPosition;
     }
 
     private void OnApplicationFocus(bool focus)
