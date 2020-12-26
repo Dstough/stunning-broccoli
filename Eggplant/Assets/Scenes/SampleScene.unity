@@ -419,7 +419,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh15868
+  m_Name: pb_Mesh15862
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -676,24 +676,3 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2cdc0373bb0041743915db4838ddc079, type: 3}
---- !u!1 &1209688821 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4106776825146942877, guid: 2cdc0373bb0041743915db4838ddc079,
-    type: 3}
-  m_PrefabInstance: {fileID: 756483819}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1209688826
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1209688821}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 555fcaeed3ef826489fc3c33b1185d06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transitionSpeed: 20
-  bobSpeed: 7
-  bobAmount: 0.1
