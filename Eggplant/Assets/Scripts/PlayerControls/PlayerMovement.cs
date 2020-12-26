@@ -5,34 +5,72 @@ public class PlayerMovement : MonoBehaviour
 {
     private const float gravity = -9.81f;
     
-    public Transform playerCamera;
+    [Space(10)]
+    [Header("Reference Hookups")]
+    public CharacterController controller;
     public Transform groundCheck;
     public LayerMask groundMask;
-    public CharacterController controller;
-
+    public Transform playerCamera;
+    [Space(10)]
+    [Header("Movement & Sensitivity")]
+    public float groundDistance = .1f;
     public float mouseSensitivity = 100f;
     public float movementSpeed = 12f;
-    public float groundDistance = .1f;
     public float jumpHeight = 3f;
-    public float strafeLeanAmmount = 0.2f;
-    public bool grounded = true;
-
-    private float xRotation = 0f;
-    private float strafeLeanRotation = 0f;
     private Vector3 velocity;
     private Vector3 MoveDirection;
     private Vector3 JumpDirection;
+    private float xRotation = 0f;
+    private float strafeLeanRotation = 0f;
+    private bool grounded = true;
+    [Space(10)]
+    [Header("Camera Effects")]
+    public float strafeLeanAmmount = 0.2f;
+    public float cameraResetSpeed = 20f;
+    public float headBobSpeed = 7f;
+    public float headBobAmount = 0.1f;
+    private Vector3 cameraRestPosition;
+    private float timer = Mathf.PI / 2;
 
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        cameraRestPosition = playerCamera.transform.localPosition;
     }
 
     void Update()
     {
-        HeadLean();
-        Look();
         Move();
+        Look();
+        HeadBob();
+        HeadLean();
+    }
+
+    private void HeadBob()
+    {
+        if (grounded && (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0))
+        {
+            timer += headBobSpeed * Time.deltaTime;
+            playerCamera.transform.localPosition = new Vector3()
+            {
+                x = Mathf.Cos(timer) * headBobAmount,
+                y = cameraRestPosition.y + Mathf.Abs(Mathf.Sin(timer * 2) * headBobAmount),
+                z = cameraRestPosition.z
+            };
+        }
+        else
+        {
+            timer = Mathf.PI / 2;
+            playerCamera.transform.localPosition = new Vector3()
+            {
+                x = Mathf.Lerp(playerCamera.transform.localPosition.x, cameraRestPosition.x, cameraResetSpeed * Time.deltaTime),
+                y = Mathf.Lerp(playerCamera.transform.localPosition.y, cameraRestPosition.y, cameraResetSpeed * Time.deltaTime),
+                z = Mathf.Lerp(playerCamera.transform.localPosition.z, cameraRestPosition.z, cameraResetSpeed * Time.deltaTime)
+            };
+        }
+
+        if (timer > Mathf.PI * 2)
+            timer = 0;
     }
 
     private void HeadLean()
