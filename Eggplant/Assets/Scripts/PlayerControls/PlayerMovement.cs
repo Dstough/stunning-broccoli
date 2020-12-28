@@ -4,7 +4,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private const float gravity = -9.81f;
-    
+
     [Space(10)]
     [Header("Reference Hookups")]
     public CharacterController controller;
@@ -19,7 +19,6 @@ public class PlayerMovement : MonoBehaviour
     public float jumpHeight = 3f;
     private Vector3 velocity;
     private Vector3 MoveDirection;
-    private Vector3 JumpDirection;
     private float xRotation = 0f;
     private float strafeLeanRotation = 0f;
     private bool grounded = true;
@@ -54,7 +53,7 @@ public class PlayerMovement : MonoBehaviour
             playerCamera.transform.localPosition = new Vector3()
             {
                 x = Mathf.Cos(timer) * headBobAmount,
-                y = cameraRestPosition.y + Mathf.Abs(Mathf.Sin(timer * 2) * headBobAmount),
+                y = cameraRestPosition.y + Mathf.Abs(Mathf.Sin(timer) * headBobAmount),
                 z = cameraRestPosition.z
             };
         }
@@ -75,6 +74,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void HeadLean()
     {
+        if (!grounded)
+            return;
+
         var x = Input.GetAxis("Horizontal");
 
         if (Math.Abs(strafeLeanRotation) < strafeLeanAmmount && x < 0 && grounded)
@@ -109,15 +111,11 @@ public class PlayerMovement : MonoBehaviour
         var x = Input.GetAxis("Horizontal");
         var z = Input.GetAxis("Vertical");
 
-        MoveDirection = Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1) * movementSpeed * Time.deltaTime;
+        MoveDirection = grounded 
+            ? Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1) * movementSpeed * Time.deltaTime
+            : Vector3.ClampMagnitude(transform.right * x * 2 + transform.forward * z * 2, 1) * movementSpeed * Time.deltaTime;
 
-        if (grounded)
-        {
-            controller.Move(new Vector3(MoveDirection.x, 0, MoveDirection.z));
-            JumpDirection = MoveDirection;
-        }
-        else
-            controller.Move(new Vector3(JumpDirection.x, 0, JumpDirection.z));
+        controller.Move(new Vector3(MoveDirection.x, 0, MoveDirection.z));
 
         if (Input.GetButtonDown("Jump") && grounded)
             velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
