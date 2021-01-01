@@ -1,126 +1,57 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CapsuleCollider))]
 public class PlayerMovement : MonoBehaviour
 {
-    private const float gravity = -9.81f;
-
-    [Space(10)]
-    [Header("Reference Hookups")]
-    public CharacterController controller;
-    public Transform groundCheck;
     public LayerMask groundMask;
-    public Transform playerCamera;
-    [Space(10)]
-    [Header("Movement & Sensitivity")]
-    public float groundDistance = .1f;
-    public float mouseSensitivity = 100f;
-    public float movementSpeed = 12f;
-    public float jumpHeight = 3f;
-    private Vector3 velocity;
-    private Vector3 MoveDirection;
-    private float xRotation = 0f;
-    private float strafeLeanRotation = 0f;
-    private bool grounded = true;
-    [Space(10)]
-    [Header("Camera Effects")]
-    public float strafeLeanAmmount = 0.2f;
-    public float cameraResetSpeed = 20f;
-    public float headBobSpeed = 7f;
-    public float headBobAmount = 0.1f;
-    private Vector3 cameraRestPosition;
-    private float timer = Mathf.PI / 2;
+    public bool grounded = true;
+    public float movementSpeed = 6f;
+    public float jumpForce = 6f;
+    public float maxSlopeAngle = .5f;
+
+    private Rigidbody rigidBody;
+    private CapsuleCollider capsuleCollider;
+    private Vector3 jumpPosition;
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        cameraRestPosition = playerCamera.transform.localPosition;
+        rigidBody = GetComponent<Rigidbody>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
+        jumpPosition = new Vector3();
     }
 
     void Update()
     {
-        Move();
-        Look();
-        HeadBob();
-        HeadLean();
-    }
+        var x = Input.GetAxisRaw("Horizontal");
+        var z = Input.GetAxisRaw("Vertical");
+        var movementPosition = Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1) * movementSpeed;
 
-    private void HeadBob()
-    {
-        if (grounded && (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0))
-        {
-            timer += headBobSpeed * Time.deltaTime;
-            playerCamera.transform.localPosition = new Vector3()
-            {
-                x = Mathf.Cos(timer) * headBobAmount,
-                y = cameraRestPosition.y + Mathf.Abs(Mathf.Sin(timer) * headBobAmount),
-                z = cameraRestPosition.z
-            };
-        }
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, capsuleCollider.height / 2f + .1f, groundMask))
+            grounded = hit.normal.y > maxSlopeAngle;
         else
+            grounded = false;
+
+        //TODO: Deal with the slope problem.
+
+        if (grounded)
         {
-            timer = Mathf.PI / 2;
-            playerCamera.transform.localPosition = new Vector3()
-            {
-                x = Mathf.Lerp(playerCamera.transform.localPosition.x, cameraRestPosition.x, cameraResetSpeed * Time.deltaTime),
-                y = Mathf.Lerp(playerCamera.transform.localPosition.y, cameraRestPosition.y, cameraResetSpeed * Time.deltaTime),
-                z = Mathf.Lerp(playerCamera.transform.localPosition.z, cameraRestPosition.z, cameraResetSpeed * Time.deltaTime)
-            };
+            jumpPosition = movementPosition;
+
+            if (Input.GetButtonDown("Jump"))
+                rigidBody.velocity = new Vector3(rigidBody.velocity.x, jumpForce, rigidBody.velocity.z);
+            else
+                rigidBody.velocity = new Vector3(rigidBody.velocity.x, -jumpForce, rigidBody.velocity.z);
         }
 
-        if (timer > Mathf.PI * 2)
-            timer = 0;
+        rigidBody.velocity = grounded
+            ? new Vector3(movementPosition.x, rigidBody.velocity.y, movementPosition.z)
+            : new Vector3(jumpPosition.x, rigidBody.velocity.y, jumpPosition.z);
     }
 
-    private void HeadLean()
+    private void OnDrawGizmos()
     {
-        if (!grounded)
-            return;
-
-        var x = Input.GetAxis("Horizontal");
-
-        if (Math.Abs(strafeLeanRotation) < strafeLeanAmmount && x < 0 && grounded)
-            strafeLeanRotation += Time.deltaTime * strafeLeanAmmount * 2;
-        if (Math.Abs(strafeLeanRotation) < strafeLeanAmmount && x > 0 && grounded)
-            strafeLeanRotation -= Time.deltaTime * strafeLeanAmmount * 2;
-
-        if (strafeLeanRotation > 0 && x >= 0)
-            strafeLeanRotation -= Time.deltaTime * strafeLeanAmmount * 4;
-        if (strafeLeanRotation < 0 && x <= 0)
-            strafeLeanRotation += Time.deltaTime * strafeLeanAmmount * 4;
-    }
-
-    private void Look()
-    {
-        var mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        var mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, strafeLeanRotation);
-        transform.Rotate(Vector3.up * mouseX);
-    }
-
-    private void Move()
-    {
-        grounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-
-        if (grounded && velocity.y < 0)
-            velocity.y = -2f;
-
-        var x = Input.GetAxis("Horizontal");
-        var z = Input.GetAxis("Vertical");
-
-        MoveDirection = grounded 
-            ? Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1) * movementSpeed * Time.deltaTime
-            : Vector3.ClampMagnitude(transform.right * x * 2 + transform.forward * z * 2, 1) * movementSpeed * Time.deltaTime;
-
-        controller.Move(new Vector3(MoveDirection.x, 0, MoveDirection.z));
-
-        if (Input.GetButtonDown("Jump") && grounded)
-            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
-
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y - (GetComponent<CapsuleCollider>().height / 2f + .1f), transform.position.z));
     }
 }
