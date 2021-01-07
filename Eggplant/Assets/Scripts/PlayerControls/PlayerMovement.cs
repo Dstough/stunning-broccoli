@@ -4,54 +4,75 @@
 [RequireComponent(typeof(CapsuleCollider))]
 public class PlayerMovement : MonoBehaviour
 {
-    public LayerMask groundMask;
-    public bool grounded = true;
-    public float movementSpeed = 6f;
-    public float jumpForce = 6f;
-    public float maxSlopeAngle = .5f;
+    public float speed = 5.0f;
+    public float gravity = 9.8f;
+    public float maxVelocityChange = 10.0f;
+    public bool canJump = true;
+    public float jumpHeight = 2.0f;
+    public bool grounded = false;
 
-    private Rigidbody rigidBody;
-    private CapsuleCollider capsuleCollider;
-    private Vector3 jumpPosition;
+    private LayerMask groundMask;
 
     void Start()
     {
-        rigidBody = GetComponent<Rigidbody>();
-        capsuleCollider = GetComponent<CapsuleCollider>();
-        jumpPosition = new Vector3();
+        GetComponent<Rigidbody>().freezeRotation = true;
+        GetComponent<Rigidbody>().useGravity = false;
+        groundMask = LayerMask.GetMask(new string[] { "Ground" });
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        var x = Input.GetAxisRaw("Horizontal");
-        var z = Input.GetAxisRaw("Vertical");
-        var movementPosition = Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1) * movementSpeed;
-
-        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, capsuleCollider.height / 2f + .1f, groundMask))
-            grounded = hit.normal.y > maxSlopeAngle;
-        else
-            grounded = false;
-
-        //TODO: Deal with the slope problem.
-
         if (grounded)
         {
-            jumpPosition = movementPosition;
+            // Calculate how fast we should be moving
+            var targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+            targetVelocity = transform.TransformDirection(targetVelocity);
+            targetVelocity *= speed;
 
-            if (Input.GetButtonDown("Jump"))
-                rigidBody.velocity = new Vector3(rigidBody.velocity.x, jumpForce, rigidBody.velocity.z);
-            else
-                rigidBody.velocity = new Vector3(rigidBody.velocity.x, -jumpForce, rigidBody.velocity.z);
+            // Apply a force that attempts to reach our target velocity
+            var velocity = GetComponent<Rigidbody>().velocity;
+            var velocityChange = targetVelocity - velocity;
+            velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
+            velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
+            velocityChange.y = 0;
+            GetComponent<Rigidbody>().AddForce(velocityChange, ForceMode.VelocityChange);
+
+            // Jump
+            if (canJump && grounded && Input.GetButton("Jump"))
+            {
+                GetComponent<Rigidbody>().velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
+            }
         }
 
-        rigidBody.velocity = grounded
-            ? new Vector3(movementPosition.x, rigidBody.velocity.y, movementPosition.z)
-            : new Vector3(jumpPosition.x, rigidBody.velocity.y, jumpPosition.z);
+        // We apply gravity manually for more tuning control
+        GetComponent<Rigidbody>().AddForce(new Vector3(0, -gravity * GetComponent<Rigidbody>().mass, 0));
+
+        grounded = false;
     }
 
-    private void OnDrawGizmos()
+    void OnCollisionStay()
     {
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y - (GetComponent<CapsuleCollider>().height / 2f + .1f), transform.position.z));
+        grounded = Physics.CheckSphere
+        (
+            new Vector3(transform.position.x, transform.position.y - GetComponent<CapsuleCollider>().height / 3 - .1f, transform.position.z),
+            GetComponent<CapsuleCollider>().radius - .2f,
+            groundMask
+        );
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.DrawSphere
+        (
+            new Vector3(transform.position.x, transform.position.y - GetComponent<CapsuleCollider>().height / 3 - .1f, transform.position.z),
+            GetComponent<CapsuleCollider>().radius - .2f
+        );
+    }
+
+    float CalculateJumpVerticalSpeed()
+    {
+        // From the jump height and gravity we deduce the upwards speed 
+        // for the character to reach at the apex.
+        return Mathf.Sqrt(2 * jumpHeight * gravity);
     }
 }
