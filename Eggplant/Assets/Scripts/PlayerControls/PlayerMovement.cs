@@ -36,11 +36,11 @@ public class PlayerMovement : MonoBehaviour
             velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
             velocityChange.y = 0;
             GetComponent<Rigidbody>().AddForce(velocityChange, ForceMode.VelocityChange);
-
+        
             // Jump
-            if (canJump && grounded && Input.GetButton("Jump"))
+            if (canJump && Input.GetButton("Jump"))
             {
-                GetComponent<Rigidbody>().velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
+                GetComponent<Rigidbody>().velocity = new Vector3(GetComponent<Rigidbody>().velocity.x, CalculateJumpVerticalSpeed(), GetComponent<Rigidbody>().velocity.z);
             }
         }
 
