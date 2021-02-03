@@ -5,8 +5,9 @@ public class MouseLook : MonoBehaviour
     public Transform playerCamera;
     public float mouseSensitivity = 100f;
 
-    private float x = 0f;
-    private float y = 0f;
+    private float mouseX = 0f;
+    private float mouseY = 0f;
+    private float xRotation = 0f;
 
     private void Start()
     {
@@ -15,13 +16,12 @@ public class MouseLook : MonoBehaviour
 
     void Update()
     {
-        x += -Input.GetAxis("Mouse Y") * mouseSensitivity;
-        y += Input.GetAxis("Mouse X") * mouseSensitivity;
+        mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90, 90);
 
-        x = Mathf.Clamp(x, -90, 90);
-
-        //TODO: Smooth this out somehow.
-        playerCamera.localRotation = Quaternion.Euler(x, 0, 0);
-        transform.localRotation = Quaternion.Euler(0, y, 0);
+        playerCamera.localRotation = Quaternion.Euler(xRotation, 0, 0);
+        transform.Rotate(Vector3.up * mouseX);
     }
 }

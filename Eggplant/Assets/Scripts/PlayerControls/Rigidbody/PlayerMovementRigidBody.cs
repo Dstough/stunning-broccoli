@@ -12,12 +12,17 @@ public class PlayerMovement : MonoBehaviour
     public bool grounded = false;
 
     private LayerMask groundMask;
+    private CapsuleCollider capsuleCollider;
+    private Rigidbody myRigidbody;
 
     void Start()
     {
-        GetComponent<Rigidbody>().freezeRotation = true;
-        GetComponent<Rigidbody>().useGravity = false;
         groundMask = LayerMask.GetMask(new string[] { "Ground" });
+        capsuleCollider = GetComponent<CapsuleCollider>();
+        myRigidbody = GetComponent<Rigidbody>();
+
+        myRigidbody.freezeRotation = true;
+        myRigidbody.useGravity = false;
     }
 
     void FixedUpdate()
@@ -30,23 +35,26 @@ public class PlayerMovement : MonoBehaviour
             targetVelocity *= speed;
 
             // Apply a force that attempts to reach our target velocity
-            var velocity = GetComponent<Rigidbody>().velocity;
+            var velocity = myRigidbody.velocity;
             var velocityChange = targetVelocity - velocity;
             velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
             velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
             velocityChange.y = 0;
-            GetComponent<Rigidbody>().AddForce(velocityChange, ForceMode.VelocityChange);
+            myRigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         
             // Jump
             if (canJump && Input.GetButton("Jump"))
             {
-                GetComponent<Rigidbody>().velocity = new Vector3(GetComponent<Rigidbody>().velocity.x, CalculateJumpVerticalSpeed(), GetComponent<Rigidbody>().velocity.z);
+                myRigidbody.velocity = new Vector3(myRigidbody.velocity.x, CalculateJumpVerticalSpeed(), myRigidbody.velocity.z);
             }
         }
 
         // We apply gravity manually for more tuning control
-        GetComponent<Rigidbody>().AddForce(new Vector3(0, -gravity * GetComponent<Rigidbody>().mass, 0));
+        if (!grounded)
+            myRigidbody.AddForce(new Vector3(0, -gravity * myRigidbody.mass, 0));
 
+        if (IsOnSlope() && Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, capsuleCollider.height, groundMask)) 
+               transform.position = new Vector3(hit.point.x, hit.point.y + capsuleCollider.height/2, hit.point.z);
         grounded = false;
     }
 
@@ -54,19 +62,30 @@ public class PlayerMovement : MonoBehaviour
     {
         grounded = Physics.CheckSphere
         (
-            new Vector3(transform.position.x, transform.position.y - GetComponent<CapsuleCollider>().height / 3 - .1f, transform.position.z),
-            GetComponent<CapsuleCollider>().radius - .2f,
+            new Vector3(transform.position.x, transform.position.y - capsuleCollider.height / 2f, transform.position.z),
+            capsuleCollider.radius - .1f,
             groundMask
         );
     }
 
     void OnDrawGizmos()
     {
-        Gizmos.DrawSphere
+        Gizmos.DrawWireSphere
         (
-            new Vector3(transform.position.x, transform.position.y - GetComponent<CapsuleCollider>().height / 3 - .1f, transform.position.z),
-            GetComponent<CapsuleCollider>().radius - .2f
+            new Vector3(transform.position.x, transform.position.y - GetComponent<CapsuleCollider>().height / 2f, transform.position.z),
+            GetComponent<CapsuleCollider>().radius - .1f
         );
+    }
+
+    bool IsOnSlope()
+    {
+        var value = false;
+        
+        if (Physics.CheckSphere(new Vector3(transform.position.x, transform.position.y - capsuleCollider.height / 2f, transform.position.z), capsuleCollider.radius - .1f, groundMask))
+            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, capsuleCollider.height, groundMask))
+                value = hit.normal != Vector3.up;
+
+        return value;
     }
 
     float CalculateJumpVerticalSpeed()
