@@ -3,6 +3,8 @@ using System.Net;
 using Assets.Scripts.Networking.ClientData;
 using Assets.Scripts.Networking.Framework;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Networking
 {
@@ -25,9 +27,13 @@ namespace Assets.Scripts.Networking
 
             Debug.Log($"{message}");
 
-            ClientSend.WelcomeRecieved();
+            var name = GameObject.Find("Username").GetComponent<InputField>().text;
+
+            ClientSend.WelcomeRecieved(name);
 
             Client.Instance.Udp.Connect(((IPEndPoint)Client.Instance.Tcp.Socket.Client.LocalEndPoint).Port);
+
+            SceneManager.LoadScene("Chat Room");
         }
     }
 }

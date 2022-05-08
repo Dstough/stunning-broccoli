@@ -23,12 +23,12 @@ namespace Assets.Scripts.Networking
 
         #region Packets
 
-        public static void WelcomeRecieved()
+        public static void WelcomeRecieved(string userName)
         {
             using (var packet = new Packet((int)PacketTypes.WelcomeReceived))
             {
                 packet.Write(Client.Instance.Id);
-                packet.Write("Some User Name");
+                packet.Write(userName);
 
                 SendTcpData(packet);
             }

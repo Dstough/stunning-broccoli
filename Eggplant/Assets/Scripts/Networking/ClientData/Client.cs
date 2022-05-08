@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using Assets.Scripts.Networking.Framework;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Scripts.Networking.ClientData
 {
@@ -283,6 +284,8 @@ namespace Assets.Scripts.Networking.ClientData
         private void InitializeClient()
         {
             ClientHandle.InitializeClientPacketHandlers();
+
+            Ip = GameObject.Find("Host").GetComponent<InputField>().text;
         }
         
         public void ConnectToServer()

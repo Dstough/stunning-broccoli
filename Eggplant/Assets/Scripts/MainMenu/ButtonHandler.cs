@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ButtonHandler : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class ButtonHandler : MonoBehaviour
     public void OnHostClick()
     {
         Instantiate(Server, new Vector3(0, 0, 0), Quaternion.identity);
+
+        SceneManager.LoadScene("Chat Room");
     }
 
     public void OnJoinClick()
